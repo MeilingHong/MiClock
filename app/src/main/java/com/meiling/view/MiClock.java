@@ -168,7 +168,6 @@ public class MiClock extends View {
         int width = (int) measureLength(widthMeasureSpec);
         int height = (int) measureLength(heightMeasureSpec);
         //TODO 获取View宽高---计算出中点位置
-//        log("Center Position: centerPositionX:"+centerPositionX+"\ncenterPositionY:"+centerPositionY);
         setMeasuredDimension(width, height);
     }
 
@@ -351,10 +350,12 @@ public class MiClock extends View {
      */
     private void getTimeDegree() {
         Calendar calendar = Calendar.getInstance();
+        //TODO 从毫秒开始计算，并且将上一个进制的进位加入到当前进位中，减小误差范围
         float milliSecond = calendar.get(Calendar.MILLISECOND);
         float second = calendar.get(Calendar.SECOND) + milliSecond / 1000;
         float minute = calendar.get(Calendar.MINUTE) + second / 60;
         float hour = calendar.get(Calendar.HOUR) + minute / 60;
+        //TODO 计算偏移的度数，为画出位置准备
         mSecondDegree = second / 60 * 360;
         mMinuteDegree = minute / 60 * 360;
         mHourDegree = hour / 12 * 360;
@@ -365,24 +366,42 @@ public class MiClock extends View {
      */
     private void drawTimeText() {
         String timeText = "12";
-        mTextPaint.getTextBounds(timeText, 0, timeText.length(), mTextRect);
-        int textLargeWidth = mTextRect.width();//两位数字的宽
+        mTextPaint.getTextBounds(timeText, 0, timeText.length(), mTextRect);//TODO 赋值获取 “12”的矩阵
+        int textLargeWidth = mTextRect.width();//TODO 两位数字的宽
+
+        //TODO 指定文本位置画出文本
+        /**
+         * 中间偏左一个文字宽的位置为x轴起点，上方偏移+文字高度 为y轴起点（文字从下方开始绘制）
+         */
         mCanvas.drawText("12", getWidth() / 2 - textLargeWidth / 2, mPaddingTop + mTextRect.height(), mTextPaint);
+
+
         timeText = "3";
         mTextPaint.getTextBounds(timeText, 0, timeText.length(), mTextRect);
         int textSmallWidth = mTextRect.width();//一位数字的宽
         mCanvas.drawText("3", getWidth() - mPaddingRight - mTextRect.height() / 2 - textSmallWidth / 2,
                 getHeight() / 2 + mTextRect.height() / 2, mTextPaint);
+
         mCanvas.drawText("6", getWidth() / 2 - textSmallWidth / 2, getHeight() - mPaddingBottom, mTextPaint);
+
         mCanvas.drawText("9", mPaddingLeft + mTextRect.height() / 2 - textSmallWidth / 2,
                 getHeight() / 2 + mTextRect.height() / 2, mTextPaint);
 
-        //画4个弧
+        //TODO 画4个弧
+        /**
+         * 设置圆弧的矩阵（绘制是从底部开始计算高度，往上绘制，占有高度）
+         *
+         * 左边切点为：左边偏移+文字高度一半+圆弧宽度一半
+         * 顶部切点为：顶部偏移+文字高度一半+圆弧宽度一半
+         * 底部切点为：高度-文字高度一半-底部偏移+圆弧宽度一半
+         * 右边切点为：宽度-文字宽度一半-右边潘奕+圆弧宽度一半
+         *
+         */
         mCircleRectF.set(mPaddingLeft + mTextRect.height() / 2 + mCircleStrokeWidth / 2,
                 mPaddingTop + mTextRect.height() / 2 + mCircleStrokeWidth / 2,
-                getWidth() - mPaddingRight - mTextRect.height() / 2 + mCircleStrokeWidth / 2,
+                getWidth() - mPaddingRight - mTextRect.height() / 2 + mCircleStrokeWidth / 2,//TODO 理解上，这里不应该用文字的高度，而应该用宽度
                 getHeight() - mPaddingBottom - mTextRect.height() / 2 + mCircleStrokeWidth / 2);
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 4; i++) {//TODO 绘制4个弧线
             mCanvas.drawArc(mCircleRectF, 5 + 90 * i, 80, false, mCirclePaint);
         }
     }
